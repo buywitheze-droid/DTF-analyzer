@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspector DTF — Análisis técnico para impresión</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="logo">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="9" cy="9" r="2" />
+                <path d="M21 15l-5-5L5 21" />
+            </svg>
+            <div>
+                <h1>Inspector DTF</h1>
+                <p class="tagline">Análisis técnico para impresión textil</p>
+            </div>
+        </div>
+        <div class="header-info">
+            <span class="badge">100% local · sin servidor</span>
+        </div>
+    </header>
+
+    <main class="app-main">
+        <!-- Panel izquierdo estilo Canva -->
+        <aside class="side-panel">
+            <section class="panel-section">
+                <h2 class="panel-title">1. Sube tu archivo</h2>
+
+                <div id="dropzone" class="dropzone">
+                    <input type="file" id="fileInput" accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf,.pdf" hidden>
+                    <div class="dropzone-content">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                        <p class="dropzone-title">Arrastra tu archivo aquí</p>
+                        <p class="dropzone-sub">o haz clic para seleccionarlo</p>
+                        <p class="dropzone-formats">PNG · JPG · JPEG · WEBP · PDF</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel-section" id="fileInfoSection" hidden>
+                <h2 class="panel-title">2. Información del archivo</h2>
+                <ul class="info-list" id="fileInfoList">
+                    <!-- llenado dinámicamente -->
+                </ul>
+            </section>
+
+            <section class="panel-section">
+                <button id="analyzeBtn" class="primary-btn" disabled>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <span>Analizar imagen</span>
+                </button>
+                <button id="resetBtn" class="secondary-btn" hidden>
+                    <span>Cargar otra imagen</span>
+                </button>
+            </section>
+
+            <section class="panel-section help-section">
+                <h2 class="panel-title">Acerca del análisis</h2>
+                <p class="help-text">Esta herramienta evalúa tu archivo bajo los criterios técnicos reales de impresión DTF: resolución, transparencia, semitransparencias, elementos diminutos y calidad visual.</p>
+                <p class="help-text">No adivina ni inventa diagnósticos. Cuando un análisis tiene baja confianza, lo indica explícitamente.</p>
+            </section>
+        </aside>
+
+        <!-- Panel derecho con preview + tarjetas -->
+        <section class="content-panel">
+            <!-- Estado inicial -->
+            <div id="emptyState" class="empty-state">
+                <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="9" cy="9" r="2" />
+                    <path d="M21 15l-5-5L5 21" />
+                </svg>
+                <h2>Sube una imagen para comenzar</h2>
+                <p>Inspecciona si tu archivo está listo para impresión DTF en segundos.</p>
+                <ul class="feature-list">
+                    <li>Resolución y tamaño físico real a 300 DPI</li>
+                    <li>Detección de transparencia y semitransparencias</li>
+                    <li>Elementos menores a 4 px (riesgo de pérdida)</li>
+                    <li>Nitidez, pixelación y artefactos de compresión</li>
+                    <li>Calificación general DTF (0–100)</li>
+                </ul>
+            </div>
+
+            <!-- Estado con análisis -->
+            <div id="analysisView" class="analysis-view" hidden>
+                <div class="preview-wrap">
+                    <div class="preview-toolbar">
+                        <span class="preview-label" id="previewLabel">Vista previa</span>
+                        <div class="preview-toggles">
+                            <button class="toggle-btn active" data-bg="checker">Checkerboard</button>
+                            <button class="toggle-btn" data-bg="white">Blanco</button>
+                            <button class="toggle-btn" data-bg="black">Negro</button>
+                        </div>
+                    </div>
+                    <div class="preview-container preview-checker" id="previewContainer">
+                        <img id="previewImage" alt="Vista previa">
+                    </div>
+                </div>
+
+                <!-- Banner de resumen -->
+                <div id="summaryBanner" class="summary-banner" hidden>
+                    <div class="summary-header">
+                        <div id="summaryIcon" class="summary-icon">!</div>
+                        <div class="summary-info">
+                            <h2 id="summaryHeadline" class="summary-headline">—</h2>
+                            <p id="summaryMessage" class="summary-message">—</p>
+                        </div>
+                    </div>
+                    <ul id="summaryList" class="summary-list" hidden></ul>
+                </div>
+
+                <!-- Loader -->
+                <div id="analysisLoader" class="analysis-loader" hidden>
+                    <div class="loader-bar"><div id="loaderProgress" class="loader-progress"></div></div>
+                    <p id="loaderText">Procesando imagen…</p>
+                </div>
+
+                <!-- Toggle de análisis técnico -->
+                <div id="detailsToggleWrap" class="details-toggle-wrap" hidden>
+                    <button id="toggleDetailsBtn" type="button" class="link-btn">
+                        <span class="toggle-label">Ver análisis técnico detallado</span>
+                        <span class="toggle-arrow">▾</span>
+                    </button>
+                </div>
+
+                <!-- Tarjetas de diagnóstico -->
+                <div id="resultsGrid" class="results-grid" hidden>
+                    <!-- llenado dinámicamente -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <span>Inspector DTF · Análisis ejecutado en tu navegador. Ningún archivo se sube a un servidor.</span>
+    </footer>
+
+    <!-- Modal selector de página PDF -->
+    <div id="pageSelectorModal" class="modal" hidden>
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card">
+            <header class="modal-header">
+                <h2 id="pageSelectorTitle">Selecciona la página a analizar</h2>
+                <button class="modal-close" type="button" data-close aria-label="Cerrar">×</button>
+            </header>
+            <p class="modal-sub" id="pageSelectorSub">Este PDF tiene varias páginas. Elige la que quieres analizar.</p>
+            <div id="pageSelectorList" class="page-selector-list">
+                <!-- thumbnails llenados dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de procesamiento (PDF / general) -->
+    <div id="processingOverlay" class="processing-overlay" hidden>
+        <div class="spinner"></div>
+        <p id="processingOverlayText">Procesando…</p>
+    </div>
+
+    <!-- PDF.js (UMD) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
+
+    <script src="analyzers.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
